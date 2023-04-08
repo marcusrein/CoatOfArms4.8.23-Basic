@@ -41,8 +41,6 @@ describe('CoatOfArms', function () {
     describe('Safe Mint', function () {
         const tokenId = 1
         const uri = 'ipfs://example-uri'
-        const powerWords = ['word1', 'word2', 'word3']
-        const emotions = ['emotion1', 'emotion2', 'emotion3']
 
         it('Should mint a token successfully for a family member', async function () {
             // Add addr1 as a family member
@@ -51,7 +49,7 @@ describe('CoatOfArms', function () {
             // Mint token for addr1
             await coatOfArms
                 .connect(addr1)
-                .safeMint(addr1.address, tokenId, uri, powerWords, emotions)
+                .safeMint(addr1.address, tokenId, uri)
 
             // Check if the token was minted successfully
             expect(await coatOfArms.ownerOf(tokenId)).to.equal(addr1.address)
@@ -64,20 +62,16 @@ describe('CoatOfArms', function () {
 
             // Check if the FamilyNFTMinted event is emitted correctly
             await expect(
-                coatOfArms
-                    .connect(addr1)
-                    .safeMint(addr1.address, tokenId, uri, powerWords, emotions)
+                coatOfArms.connect(addr1).safeMint(addr1.address, tokenId, uri)
             )
                 .to.emit(coatOfArms, 'FamilyNFTMinted')
-                .withArgs(addr1.address, tokenId, uri, powerWords, emotions)
+                .withArgs(addr1.address, tokenId, uri)
         })
 
         it("Should fail if the sender doesn't have the FAMILY_ROLE", async function () {
             // Try to mint a token for addr2 who doesn't have the FAMILY_ROLE
             await expect(
-                coatOfArms
-                    .connect(addr1)
-                    .safeMint(addr2.address, tokenId, uri, powerWords, emotions)
+                coatOfArms.connect(addr1).safeMint(addr2.address, tokenId, uri)
             ).to.be.revertedWith(
                 'AccessControl: account 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 is missing role 0x777f19d45b942061992d93d9fb97a894ca03ce0b66452ad147c73cdd7433b7dc'
             )
@@ -88,9 +82,7 @@ describe('CoatOfArms', function () {
 
             // Try to mint a token for addr2 who doesn't have the FAMILY_ROLE
             await expect(
-                coatOfArms
-                    .connect(addr1)
-                    .safeMint(addr2.address, tokenId, uri, powerWords, emotions)
+                coatOfArms.connect(addr1).safeMint(addr2.address, tokenId, uri)
             ).to.be.revertedWith('CoatOfArms: Address is not a family member')
         })
     })
@@ -111,13 +103,7 @@ describe('CoatOfArms', function () {
             await coatOfArms.addMember(addr1.address)
             await coatOfArms
                 .connect(addr1)
-                .safeMint(
-                    addr1.address,
-                    1,
-                    'https://example.com/token/1',
-                    ['PowerWord1', 'PowerWord2', 'PowerWord3'],
-                    ['Emotion1', 'Emotion2', 'Emotion3']
-                )
+                .safeMint(addr1.address, 1, 'https://example.com/token/1')
             expect(await coatOfArms.getFamilyNFTsCount()).to.equal(1)
         })
     })
