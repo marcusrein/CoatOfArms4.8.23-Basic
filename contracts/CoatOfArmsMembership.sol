@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import '@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol';
+import '@openzeppelin/contracts/access/AccessControl.sol';
 
 contract CoatOfArms is ERC721, ERC721URIStorage, AccessControl {
-    bytes32 public constant FAMILY_ROLE = keccak256("FAMILY_ROLE");
+    bytes32 public constant FAMILY_ROLE = keccak256('FAMILY_ROLE');
 
     event NewMemberAdded(address indexed memberAddress);
     event FamilyNFTMinted(
@@ -31,7 +31,7 @@ contract CoatOfArms is ERC721, ERC721URIStorage, AccessControl {
     membershipList[] public familyMembers;
     familyMomentNFT[] public familyNFTsList;
 
-    constructor() ERC721("CoatOfArms", "COA") {
+    constructor() ERC721('CoatOfArms', 'COA') {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(FAMILY_ROLE, msg.sender);
     }
@@ -39,9 +39,17 @@ contract CoatOfArms is ERC721, ERC721URIStorage, AccessControl {
     modifier onlyFamilyMember(address to) {
         require(
             hasRole(FAMILY_ROLE, to),
-            "CoatOfArms: Address is not a family member"
+            'CoatOfArms: Address is not a family member'
         );
         _;
+    }
+
+    function getFamilyMembersCount() public view returns (uint256) {
+        return familyMembers.length;
+    }
+
+    function getFamilyNFTsCount() public view returns (uint256) {
+        return familyNFTsList.length;
     }
 
     function safeMint(
