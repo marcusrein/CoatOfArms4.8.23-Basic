@@ -13,7 +13,7 @@ async function main() {
     await coatOfArms.deployed()
     const signers = await ethers.getSigners()
     await console.log('CoatOfArms deployed to:', coatOfArms.address)
-    console.log('Signers of coat of Arms: ', signers)
+    // console.log('Signers of coat of Arms: ', signers)
 
     // Verify if on Polygon
 
@@ -24,10 +24,11 @@ async function main() {
 
     // Interact with CoatOfArms
 
-    console.log('Signers: ', signers.contractAddress)
-
     console.log('Adding member... ')
-    const addMemberResponse = await coatOfArms.addMember(signers[1].address)
+    const addMemberResponse = await coatOfArms.addMember(
+        signers[0].address,
+        signers[1].address
+    )
 
     // console.log('Added member Response: ', addMemberResponse)
 
@@ -36,6 +37,7 @@ async function main() {
     // console.log('AddMember Receipt: ', addMemberReceipt)
 
     const safeMintResponse = await coatOfArms.safeMint(
+        signers[0].address,
         signers[1].address,
         1,
         'https://gateway.pinata.cloud/ipfs/QmNVCXUeZXxRck5iV7o6XQFLactsVbM1nf73e5Z29zCYQ2'
@@ -50,7 +52,7 @@ async function main() {
         (event) => event.event === 'NewMemberAdded'
     )
 
-    console.log('NewMemberAdded Event:', newMemberEvent)
+    // console.log('NewMemberAdded Event:', newMemberEvent)
 }
 
 async function verify(contractAddress, args) {
@@ -66,13 +68,6 @@ async function verify(contractAddress, args) {
         } else {
             console.log('There was an error when verifying:', error)
         }
-        // async function handleTokenUris() {
-        //     tokenUris = []
-
-        //     return tokenUris
-        // }
-        // We recommend this pattern to be able to use async/await everywhere
-        // and properly handle errors.
     }
 }
 
