@@ -2,6 +2,7 @@ const pinataSDK = require('@pinata/sdk')
 const path = require('path')
 const fs = require('fs')
 require('dotenv').config()
+const pixelit = require('pixelit')
 
 const pinataApiKey = process.env.PINATA_API_KEY
 const pinataApiSecret = process.env.PINATA_API_SECRET
@@ -28,13 +29,18 @@ async function storeImages(imagesFilePath) {
     let responses = []
     for (fileIndex in files) {
         const imagePath = `${fullImagesPath}/${files[fileIndex]}`
-        const image = await Jimp.read(imagePath)
-        pixelate(image.bitmap.data, image.bitmap.width, image.bitmap.height, 16) // 16 is the pixelation size
+        const pixelatedImagePath = `./images/pixelated/${files[fileIndex]}`
+
+        const pixelatedImage = new pixelit()
+
+        pixelatedImage
+            .setDrawFrom(imagePath)
+            .setDrawTo(pixelatedImagePath)
+            .setPixelSize(10)
+            .draw()
+
         try {
-            const response = await pinata.pinFileToIPFS(
-                fs.createReadStream(imagePath),
-                options
-            )
+            const response = await pinata.pinFileToIPFS(pixelatedImage, options)
             responses.push(response)
         } catch (err) {
             console.log(err)
