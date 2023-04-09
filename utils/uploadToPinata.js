@@ -7,8 +7,8 @@ const pinataApiKey = process.env.PINATA_API_KEY
 const pinataApiSecret = process.env.PINATA_API_SECRET
 const pinata = pinataSDK(pinataApiKey, pinataApiSecret)
 
-async function uploadToPinata(filePath) {
-    const fullImagesPath = path.resolve(filePath)
+async function storeImages(imagesFilePath) {
+    const fullImagesPath = path.resolve(imagesFilePath)
     const files = fs.readdirSync(fullImagesPath)
     console.log(files)
     let responses = []
@@ -27,4 +27,4 @@ async function uploadToPinata(filePath) {
     }
 }
 
-module.exports = { uploadToPinata }
+module.exports = { storeImages }

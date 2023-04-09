@@ -33,12 +33,14 @@ contract CoatOfArms is ERC721, ERC721URIStorage, AccessControl {
     familyList[] private familyMembers;
     familyMomentNFT[] private familyNFTsList;
 
-    uint256 public tokenIdCounter = 0;
+    uint256 public tokenIdCounter;
+    string[] internal tokenURIs;
 
     constructor() ERC721('CoatOfArms', 'COA') {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(FAMILY_ROLE, msg.sender);
         familyMembers.push(familyList(msg.sender));
+        tokenIdCounter = 0;
     }
 
     modifier onlyFamilyMember(address to) {
@@ -68,6 +70,10 @@ contract CoatOfArms is ERC721, ERC721URIStorage, AccessControl {
         familyNFTsList.push(familyMomentNFT(from, to, tokenId, uri));
         emit FamilyNFTMinted(from, to, tokenId, uri);
         tokenIdCounter++;
+    }
+
+    function getTokenIdCounter() public view returns (uint256) {
+        return tokenIdCounter;
     }
 
     function addMember(

@@ -1,6 +1,7 @@
 {
     "name": "coat-of-arms-4823-basic",
     "version": "1.0.0",
+    
     "license": "MIT",
     "scripts": {
         "deploy": "hardhat run scripts/deploy.js",

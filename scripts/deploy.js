@@ -1,10 +1,19 @@
 const hre = require('hardhat')
 const { ethers, run, network } = require('hardhat')
 require('@nomiclabs/hardhat-etherscan')
-// const { uploadToPinata } = require('./utils/uploadToPinata')
+const { storeImages } = require('../utils/uploadToPinata')
 require('dotenv').config()
 
+const imagesLocation = './images'
+
 async function main() {
+    // get IPFS hashes of our images
+    let tokenUris
+    if (process.env.PINATA_API_KEY && process.env.PINATA_SECRET_API_KEY) {
+        tokenUris = await handleTokenUris()
+    }
+
+    await storeImages(imagesLocation)
     // Deploy CoatOfArms
 
     const CoatOfArmsFactory = await ethers.getContractFactory('CoatOfArms')
@@ -40,7 +49,7 @@ async function main() {
         signers[0].address,
         signers[1].address,
         1,
-        'https://gateway.pinata.cloud/ipfs/QmNVCXUeZXxRck5iV7o6XQFLactsVbM1nf73e5Z29zCYQ2'
+        tokenUris[0]
     )
     // console.log('SafeMint Response: ', safeMintResponse)
 
@@ -69,6 +78,18 @@ async function verify(contractAddress, args) {
             console.log('There was an error when verifying:', error)
         }
     }
+}
+
+async function handleTokenUris() {
+    // Call storeImages function and collect the responses
+    const responses = await storeImages(imagesLocation)
+
+    // Map the responses to construct token URIs
+    const tokenUris = responses.map((response) => {
+        return `https://gateway.pinata.cloud/ipfs/${response.IpfsHash}`
+    })
+
+    return tokenUris
 }
 
 main().catch((error) => {
