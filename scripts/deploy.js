@@ -1,26 +1,74 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// You can also run a script with `npx hardhat run <script>`. If you do that, Hardhat
-// will compile your contracts, add the Hardhat Runtime Environment's members to the
-// global scope, and execute the script.
-const hre = require("hardhat");
+const hre = require('hardhat')
+const { ethers, run, network } = require('hardhat')
+require('@nomiclabs/hardhat-etherscan')
+require('dotenv').config()
+const { storeImages, handleTokenUris } = require('../utils/uploadToPinata')
 
 async function main() {
-	// We deploy the CoatOfArms.sol contract:
+    // get IPFS hashes of our images
+    let tokenUris
 
-	async function main() {
-		const CoatOfArms = await ethers.getContractFactory("CoatOfArms");
-		const coatOfArms = await CoatOfArms.deploy();
-		await coatOfArms.deployed();
+    if (process.env.UPLOAD_TO_PINATA) {
+        const imagesLocation = './images'
 
-		console.log("CoatOfArms deployed to:", coatOfArms.address);
-	}
+        console.log('Uploading images to Pinata...')
+        imageUploadResponse = await storeImages(imagesLocation)
+        tokenUris = await handleTokenUris(imageUploadResponse)
+        console.log('Token URIs: ', tokenUris)
+        return tokenUris
+    }
+    // Deploy CoatOfArms
+
+    const CoatOfArmsFactory = await ethers.getContractFactory('CoatOfArms')
+    console.log('Deploying CoatOfArms...')
+    const coatOfArms = await CoatOfArmsFactory.deploy()
+    await coatOfArms.deployed()
+    const signers = await ethers.getSigners()
+    await console.log('CoatOfArms deployed to:', coatOfArms.address)
+
+    // Verify if on Polygon
+
+    if (network.config.chainId === 80001 && process.env.POLYGONSCAN_API_KEY) {
+        await coatOfArms.deployTransaction.wait(5)
+        await verify(coatOfArms.address, [])
+    }
+
+    // Interact with CoatOfArms
+
+    console.log('Adding member... ')
+    const addMemberResponse = await coatOfArms.addMember(
+        signers[0].address,
+        signers[1].address
+    )
+
+    const addMemberReceipt = await addMemberResponse.wait()
+
+    console.log(
+        `CoatOfArms minted from ${signers[0].address} to: ${signers[1].address}`
+    )
+
+    const newMemberEvent = addMemberReceipt.events.find(
+        (event) => event.event === 'NewMemberAdded'
+    )
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
+async function verify(contractAddress, args) {
+    console.log('Verifying contract...')
+    try {
+        await run('verify:verify', {
+            address: contractAddress,
+            constructorArguments: args,
+        })
+    } catch (error) {
+        if (error.message.includes('Contract source code already verified')) {
+            console.log('Contract already verified')
+        } else {
+            console.log('There was an error when verifying:', error)
+        }
+    }
+}
+
 main().catch((error) => {
-	console.error(error);
-	process.exitCode = 1;
-});
+    console.error(error)
+    process.exitCode = 1
+})
