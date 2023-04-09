@@ -34,10 +34,11 @@ async function storeImages(imagesFilePath) {
         const pixelatedImage = new pixelit()
 
         pixelatedImage
+            .draw()
             .setDrawFrom(imagePath)
             .setDrawTo(pixelatedImagePath)
             .setPixelSize(10)
-            .draw()
+            .pixelate()
 
         try {
             const response = await pinata.pinFileToIPFS(pixelatedImage, options)
