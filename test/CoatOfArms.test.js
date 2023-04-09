@@ -22,7 +22,9 @@ describe('CoatOfArms', function () {
 
     describe('Add Member', function () {
         it('Should add a family member correctly and emit NewMemberAdded event', async function () {
-            await coatOfArms.connect(owner).addMember(addr1.address)
+            await coatOfArms
+                .connect(owner)
+                .addMember(owner.address, addr1.address)
 
             // Check if the new member has the FAMILY_ROLE
             const hasFamilyRole = await coatOfArms.hasRole(
@@ -32,9 +34,13 @@ describe('CoatOfArms', function () {
             expect(hasFamilyRole).to.be.true
 
             // Check if the NewMemberAdded event is emitted correctly
-            await expect(coatOfArms.connect(owner).addMember(addr2.address))
+            await expect(
+                coatOfArms
+                    .connect(owner)
+                    .addMember(owner.address, addr2.address)
+            )
                 .to.emit(coatOfArms, 'NewMemberAdded')
-                .withArgs(addr2.address)
+                .withArgs(owner.address, addr2.address)
         })
     })
 
@@ -44,66 +50,91 @@ describe('CoatOfArms', function () {
 
         it('Should mint a token successfully for a family member', async function () {
             // Add addr1 as a family member
-            await coatOfArms.connect(owner).addMember(addr1.address)
+            await coatOfArms
+                .connect(owner)
+                .addMember(owner.address, addr1.address)
 
-            // Mint token for addr1
+            // Add1 adds add2 as a family member
+
             await coatOfArms
                 .connect(addr1)
-                .safeMint(addr1.address, tokenId, uri)
+                .addMember(addr1.address, addr2.address)
+
+            // Mint token from addr1 to addr2
+            await coatOfArms
+                .connect(addr1)
+                .safeMint(addr1.address, addr2.address, tokenId, uri)
 
             // Check if the token was minted successfully
-            expect(await coatOfArms.ownerOf(tokenId)).to.equal(addr1.address)
+            expect(await coatOfArms.ownerOf(tokenId)).to.equal(addr2.address)
             expect(await coatOfArms.tokenURI(tokenId)).to.equal(uri)
         })
 
         it('Should emit FamilyNFTMinted event when minting a token', async function () {
             // Add addr1 as a family member
-            await coatOfArms.connect(owner).addMember(addr1.address)
+            await coatOfArms
+                .connect(owner)
+                .addMember(owner.address, addr1.address)
+
+            await coatOfArms
+                .connect(addr1)
+                .addMember(addr1.address, addr2.address)
 
             // Check if the FamilyNFTMinted event is emitted correctly
             await expect(
-                coatOfArms.connect(addr1).safeMint(addr1.address, tokenId, uri)
+                coatOfArms
+                    .connect(addr1)
+                    .safeMint(addr1.address, addr2.address, tokenId, uri)
             )
                 .to.emit(coatOfArms, 'FamilyNFTMinted')
-                .withArgs(addr1.address, tokenId, uri)
+                .withArgs(addr1.address, addr2.address, tokenId, uri)
         })
 
         it("Should fail if the sender doesn't have the FAMILY_ROLE", async function () {
             // Try to mint a token for addr2 who doesn't have the FAMILY_ROLE
             await expect(
-                coatOfArms.connect(addr1).safeMint(addr2.address, tokenId, uri)
+                coatOfArms
+                    .connect(addr1)
+                    .safeMint(addr1.address, addr2.address, tokenId, uri)
             ).to.be.revertedWith(
                 'AccessControl: account 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 is missing role 0x777f19d45b942061992d93d9fb97a894ca03ce0b66452ad147c73cdd7433b7dc'
             )
         })
         it("Should fail if the recipient doesn't have the FAMILY_ROLE", async function () {
             // Add addr1 as a family member
-            await coatOfArms.connect(owner).addMember(addr1.address)
+            await coatOfArms
+                .connect(owner)
+                .addMember(owner.address, addr1.address)
 
             // Try to mint a token for addr2 who doesn't have the FAMILY_ROLE
             await expect(
-                coatOfArms.connect(addr1).safeMint(addr2.address, tokenId, uri)
+                coatOfArms
+                    .connect(addr1)
+                    .safeMint(addr1.address, addr2.address, tokenId, uri)
             ).to.be.revertedWith('CoatOfArms: Address is not a family member')
         })
     })
 
     describe('Family Members and NFTs Count', function () {
         it('Should return correct family members count after adding a new member', async function () {
-            await coatOfArms.addMember(addr1.address)
-            const familyMembersCount = await coatOfArms.getFamilyMembersCount()
-            console.log('FAM MEMBERS NUMBER:', familyMembersCount)
-            expect(familyMembersCount).to.equal(1)
+            await coatOfArms
+                .connect(owner)
+                .addMember(owner.address, addr1.address)
 
-            // const familyMembersCount = await coatOfArms.familyMembers.length
-            // console.log('FAM MEMBERS NUMBER:', familyMembersCount)
-            // expect(familyMembersCount).to.equal(1)
+            const familyMembersCount = await coatOfArms.getFamilyMembersCount()
+            expect(familyMembersCount).to.equal(2)
         })
 
         it('Should return correct family NFTs count after minting a new token', async function () {
-            await coatOfArms.addMember(addr1.address)
+            await coatOfArms.addMember(owner.address, addr1.address)
             await coatOfArms
-                .connect(addr1)
-                .safeMint(addr1.address, 1, 'https://example.com/token/1')
+                .connect(owner)
+                .safeMint(
+                    owner.address,
+                    addr1.address,
+                    1,
+                    'https://example.com/token/1'
+                )
             expect(await coatOfArms.getFamilyNFTsCount()).to.equal(1)
         })
     })

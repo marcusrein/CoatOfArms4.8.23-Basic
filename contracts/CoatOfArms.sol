@@ -8,31 +8,37 @@ import '@openzeppelin/contracts/access/AccessControl.sol';
 contract CoatOfArms is ERC721, ERC721URIStorage, AccessControl {
     bytes32 public constant FAMILY_ROLE = keccak256('FAMILY_ROLE');
 
-    event NewMemberAdded(address indexed memberAddress);
+    event NewMemberAdded(
+        address indexed from,
+        address indexed newMemberAddress
+    );
     event FamilyNFTMinted(
-        address indexed memberAddress,
+        address indexed from,
+        address indexed to,
         uint256 indexed tokenId,
         string tokenURI
     );
 
-    struct membershipList {
+    struct familyList {
         address memberAddress;
     }
 
     struct familyMomentNFT {
+        address from;
         address to;
         uint256 tokenId;
         string tokenURI;
     }
 
-    membershipList[] public familyMembers;
-    familyMomentNFT[] public familyNFTsList;
+    familyList[] private familyMembers;
+    familyMomentNFT[] private familyNFTsList;
 
     uint256 public tokenIdCounter = 0;
 
     constructor() ERC721('CoatOfArms', 'COA') {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(FAMILY_ROLE, msg.sender);
+        familyMembers.push(familyList(msg.sender));
     }
 
     modifier onlyFamilyMember(address to) {
@@ -52,21 +58,25 @@ contract CoatOfArms is ERC721, ERC721URIStorage, AccessControl {
     }
 
     function safeMint(
+        address from,
         address to,
         uint256 tokenId,
         string memory uri
     ) public onlyRole(FAMILY_ROLE) onlyFamilyMember(to) {
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
-        familyNFTsList.push(familyMomentNFT(to, tokenId, uri));
-        emit FamilyNFTMinted(to, tokenId, uri);
+        familyNFTsList.push(familyMomentNFT(from, to, tokenId, uri));
+        emit FamilyNFTMinted(from, to, tokenId, uri);
         tokenIdCounter++;
     }
 
-    function addMember(address newMemberAddress) public onlyRole(FAMILY_ROLE) {
+    function addMember(
+        address currentMemberAddress,
+        address newMemberAddress
+    ) public onlyRole(FAMILY_ROLE) {
         _grantRole(FAMILY_ROLE, newMemberAddress);
-        familyMembers.push(membershipList(newMemberAddress));
-        emit NewMemberAdded(newMemberAddress);
+        familyMembers.push(familyList(newMemberAddress));
+        emit NewMemberAdded(currentMemberAddress, newMemberAddress);
     }
 
     // The following functions are overrides required by Solidity.

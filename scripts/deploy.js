@@ -6,12 +6,14 @@ require('dotenv').config()
 
 async function main() {
     // Deploy CoatOfArms
+
     const CoatOfArmsFactory = await ethers.getContractFactory('CoatOfArms')
     console.log('Deploying CoatOfArms...')
     const coatOfArms = await CoatOfArmsFactory.deploy()
     await coatOfArms.deployed()
+    const signers = await ethers.getSigners()
     await console.log('CoatOfArms deployed to:', coatOfArms.address)
-    console.log('Signers of coat of Arms: ', coatOfArms.signers)
+    console.log('Signers of coat of Arms: ', signers)
 
     // Verify if on Polygon
 
@@ -21,27 +23,28 @@ async function main() {
     }
 
     // Interact with CoatOfArms
-    const signers = await ethers.getSigners()
 
-    console.log('Signers: ', signers)
+    console.log('Signers: ', signers.contractAddress)
 
     console.log('Adding member... ')
     const addMemberResponse = await coatOfArms.addMember(signers[1].address)
 
-    console.log('Added member Response: ', addMemberResponse)
+    // console.log('Added member Response: ', addMemberResponse)
 
     const addMemberReceipt = await addMemberResponse.wait()
 
-    console.log('AddMember Receipt: ', addMemberReceipt)
+    // console.log('AddMember Receipt: ', addMemberReceipt)
 
     const safeMintResponse = await coatOfArms.safeMint(
         signers[1].address,
         1,
         'https://gateway.pinata.cloud/ipfs/QmNVCXUeZXxRck5iV7o6XQFLactsVbM1nf73e5Z29zCYQ2'
     )
-    console.log('SafeMint Response: ', safeMintResponse)
+    // console.log('SafeMint Response: ', safeMintResponse)
 
-    console.log('CoatOfArms minted to:', signers[1].address)
+    console.log(
+        `CoatOfArms minted from ${signers[0].address} to: ${signers[1].address}`
+    )
 
     const newMemberEvent = addMemberReceipt.events.find(
         (event) => event.event === 'NewMemberAdded'
