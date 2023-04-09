@@ -24,15 +24,15 @@ const options = {
 async function storeImages(imagesFilePath) {
     const fullImagesPath = path.resolve(imagesFilePath)
     const files = fs.readdirSync(fullImagesPath)
-    console.log(files)
+    console.log('Files!!!!: ', files)
     let responses = []
     for (fileIndex in files) {
-        const readableStreamForFile = fs.createReadStream(
-            `${fullImagesPath}/${files[fileIndex]}`
-        )
+        const imagePath = `${fullImagesPath}/${files[fileIndex]}`
+        const image = await Jimp.read(imagePath)
+        pixelate(image.bitmap.data, image.bitmap.width, image.bitmap.height, 16) // 16 is the pixelation size
         try {
             const response = await pinata.pinFileToIPFS(
-                readableStreamForFile,
+                fs.createReadStream(imagePath),
                 options
             )
             responses.push(response)
@@ -40,13 +40,10 @@ async function storeImages(imagesFilePath) {
             console.log(err)
         }
     }
-    console.log('Responsessssss: ', responses)
-    // Return the responses array
     return responses
 }
 
 async function handleTokenUris(responses) {
-    const imagesLocation = './images'
     console.log('Responses: ', responses)
     const tokenUris = responses.map((response) => {
         return `https://gateway.pinata.cloud/ipfs/${response.IpfsHash}`

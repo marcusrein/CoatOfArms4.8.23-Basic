@@ -1,7 +1,6 @@
 {
     "name": "coat-of-arms-4823-basic",
     "version": "1.0.0",
-    
     "license": "MIT",
     "scripts": {
         "deploy": "hardhat run scripts/deploy.js",
@@ -30,6 +29,7 @@
         "hardhat-contract-sizer": "^2.1.4",
         "hardhat-gas-reporter": "^1.0.8",
         "path": "^0.12.7",
+        "sharp": "^0.32.0",
         "solhint": "^3.3.6",
         "solidity-coverage": "^0.8.0",
         "typechain": "^8.1.0"
@@ -37,6 +37,7 @@
     "dependencies": {
         "@openzeppelin/contracts": "4.8.2",
         "babel-eslint": "10.1.0",
-        "dotenv": "^10.0.0"
+        "dotenv": "^10.0.0",
+        "pixelit": "^0.1.4"
     }
 }
